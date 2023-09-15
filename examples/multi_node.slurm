@@ -1,36 +1,41 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# This software may be used and distributed according to the terms of the GNU General Public License version 3.
-
-
 #!/bin/bash
 
-#SBATCH --job-name=Nano-2d-trainer-20b-8nodes
+#SBATCH --job-name=llama2-finetuning-%u-%j
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:8   
+#SBATCH --partition=l4
+#SBATCH --time=48:00:00
 
-#SBATCH --ntasks=2
-#SBATCH --nodes=2
-#SBATCH --gpus-per-task=4
-#SBATCH --partition=train 
-nodes=( $( scontrol show hostnames $SLURM_JOB_NODELIST ) )
-nodes_array=($nodes)
-head_node=${nodes_array[0]}
+# We grab the first node address to act as the head node for multi node training
+head_node=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 head_node_ip=$(srun --nodes=1 --ntasks=1 -w "$head_node" hostname --ip-address)
-# Enable for A100
-export FI_PROVIDER="efa"
+head_node_port=29500
+export MASTER_ADDR=$head_node_ip
+export MASTER_PORT=$head_node_port
+export MODEL_NAME="meta-llama/Llama-2-7b-chat-hf"
 
-echo Node IP: $head_node_ip
-export LOGLEVEL=INFO
 # debugging flags (optional)
-export NCCL_DEBUG=WARN
-export NCCL_DEBUG_SUBSYS=WARN
 export PYTHONFAULTHANDLER=1
-export LD_LIBRARY_PATH=/opt/amazon/efa/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH
 export CUDA_LAUNCH_BLOCKING=0
+export LOGLEVEL=INFO
+#export NCCL_DEBUG=INFO
+#export NCCL_DEBUG_SUBSYS=INIT,P2P
+#export NCCL_ASYNC_ERROR_HANDLING=1
+#export TORCH_CPP_LOG_LEVEL=INFO
+#export TORCH_DISTRIBUTED_DEBUG=DETAIL
 
-# on your cluster you might need these:
-# set the network interface
-export NCCL_SOCKET_IFNAME="ens"
-export FI_EFA_USE_DEVICE_RDMA=1
+echo "setting HF token to download base model"
+HUGGINGFACE_TOKEN="<YOUR TOKEN>"
+huggingface-cli login --token $HUGGINGFACE_TOKEN
 
-srun  torchrun --nproc_per_node 4 --rdzv_id $RANDOM --rdzv_backend c10d --rdzv_endpoint $head_node_ip:29500 examples/finetuning.py  --enable_fsdp --use_peft --peft_method lora
+echo "starting training now.."
 
+cd $SLURM_SUBMIT_DIR
+
+time srun torchrun --nnodes $SLURM_NNODES \
+	--nproc_per_node 8 \
+	--rdzv-endpoint "$head_node:$MASTER_PORT" \
+	--rdzv-id $SLURM_JOB_ID \
+	--rdzv-backend c10d \
+	--log_dir logs \
+	finetuning.py --enable_fsdp --low_cpu_fsdp --model_name "$MODEL_NAME" --batch_size_training 1 --micro_batch_size 1 --dist_checkpoint_root_folder model_checkpoints --dist_checkpoint_folder "$MODEL_NAME" 
