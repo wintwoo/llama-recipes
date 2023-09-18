@@ -13,6 +13,7 @@ head_node_port=29500
 export MASTER_ADDR=$head_node_ip
 export MASTER_PORT=$head_node_port
 export MODEL_NAME="meta-llama/Llama-2-7b-chat-hf"
+#export TEMP=/scratch # this will use local SSDs configured for A2 VMs in the A100 slurm partition
 
 # debugging flags (optional)
 export PYTHONFAULTHANDLER=1
