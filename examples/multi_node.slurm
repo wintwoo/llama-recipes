@@ -38,4 +38,4 @@ time srun torchrun --nnodes $SLURM_NNODES \
 	--rdzv-id $SLURM_JOB_ID \
 	--rdzv-backend c10d \
 	--log_dir logs \
-	finetuning.py --enable_fsdp --low_cpu_fsdp --model_name "$MODEL_NAME" --batch_size_training 1 --micro_batch_size 1 --dist_checkpoint_root_folder model_checkpoints --dist_checkpoint_folder "$MODEL_NAME" 
+	finetuning.py --enable_fsdp --low_cpu_fsdp --model_name "$MODEL_NAME" --batch_size_training 1 --micro_batch_size 1 --dist_checkpoint_root_folder /bucket/model_checkpoints --dist_checkpoint_folder "$MODEL_NAME" 
