@@ -7,7 +7,7 @@
 #SBATCH --time=06:00:00
 
 export MODEL_NAME="Llama-2-7b-chat-hf"
-export FSDP_CHECKPOINT_PATH="model_checkpoints/${MODEL_NAME}-meta-llama/${MODEL}"
+export FSDP_CHECKPOINT_PATH="/bucket/model_checkpoints/${MODEL_NAME}-meta-llama/${MODEL}"
 export CONSOLIDATED_MODEL_PATH="${FSDP_CHECKPOINT_PATH}/save/checkpoints/"
 export PROMPT_FILE="chat_completion/chats.json"
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
