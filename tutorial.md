@@ -350,9 +350,9 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
     5.1 You will need to add your [Huggingface User access token](https://huggingface.co/docs/hub/security-tokens) in the script `HUGGINGFACE_TOKEN="<YOUR TOKEN>"`. If you don't have a HuggingFace account, [create one now](https://huggingface.co/login). 
 
     5.2 To change the number of nodes, change the value for `SBATCH --nodes=` at the top of the script. To change between G2 VMs (L4-24GB GPU) and A2 VMs (A100-80GB GPU), change the values for `SBATCH --partition=l4/a100`.
+    
+    **Each G2 and A2 VM is pre-configured with 8 x respective GPUs each.**
 
-   **Each G2 and A2 VM is pre-configured with 8 x respective GPUs each.**
-   
     * To use the **Llama-2-7b-chat-hf** model, you will need at least 8 x L4-24GB GPUs. eg. `--nodes=1` and `--partition=l4`
     * To use the **Llama-2-13b-chat-hf** model, you will need at least 40 x L4-24GB GPUs or 8 x A100-80GB GPUs
     * To use the **Llama-2-70b-chat-hf** model, you will need at least 16 x A100-80GB GPUs
@@ -362,11 +362,11 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
         time srun torchrun .. finetuning.py --use_peft --peft_method lora --quantization
         ```
 
-7. Submit the training job to slurm
+6. Submit the training job to slurm
     ```bash
     sbatch multi_node.slurm
     ```
-8. To check the status of slurm jobs
+7. To check the status of slurm jobs
     ```bash
     watch squeue
     ```
@@ -388,3 +388,14 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
     ```bash
     sbatch test_inference.slurm
     ```
+
+## Cleaning up
+
+To destroy the cloud environment we created, use the following command.
+
+```bash
+cd hpc-toolkit
+./ghpc destroy llama2_hpc
+```
+
+*When prompted during the environment tear down, enter "a" to confirm.*
