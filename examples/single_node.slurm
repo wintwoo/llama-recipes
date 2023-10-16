@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=llama2-finetuning-%u-%j
-#SBATCH --nodes=2
+#SBATCH --nodes=1
 #SBATCH --gres=gpu:8   
 #SBATCH --partition=l4
 #SBATCH --time=48:00:00
@@ -40,4 +40,4 @@ time srun torchrun --nnodes $SLURM_NNODES \
 	--rdzv-id $SLURM_JOB_ID \
 	--rdzv-backend c10d \
 	--log_dir logs \
-	finetuning.py --enable_fsdp --low_cpu_fsdp --model_name "$MODEL_NAME" --use_peft true --peft_method lora --quantization true --batch_size_training 1 --num_epochs 1 --dist_checkpoint_root_folder /bucket/model_checkpoints --dist_checkpoint_folder "$MODEL_NAME_NEW"
+	finetuning.py --model_name "$MODEL_NAME" --use_peft true --peft_method lora --quantization true --batch_size_training 1 --num_epochs 1 --dist_checkpoint_root_folder /bucket/model_checkpoints --dist_checkpoint_folder "$MODEL_NAME_NEW"

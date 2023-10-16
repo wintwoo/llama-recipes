@@ -7,7 +7,7 @@
 #SBATCH --time=06:00:00
 
 export MODEL_NAME="Llama-2-7b-chat-hf"
-export FSDP_CHECKPOINT_PATH="/bucket/model_checkpoints/${MODEL_NAME}-meta-llama/${MODEL}"
+export FSDP_CHECKPOINT_PATH="/bucket/model_checkpoints/${MODEL_NAME}_new-meta-llama/${MODEL}"
 export CONSOLIDATED_MODEL_PATH="${FSDP_CHECKPOINT_PATH}/save/checkpoints/"
 
 cd $SLURM_SUBMIT_DIR
