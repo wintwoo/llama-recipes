@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=llama2-finetuning-%u-%j
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:8   
+#SBATCH --gpus=8   
 #SBATCH --partition=l4
 #SBATCH --time=48:00:00
 
@@ -14,6 +14,9 @@ export MASTER_ADDR=$head_node_ip
 export MASTER_PORT=$head_node_port
 export MODEL_NAME="meta-llama/Llama-2-7b-chat-hf"
 export MODEL_NAME_NEW="${MODEL_NAME}_new"
+export MODEL_OUTPUT_DIR="/bucket/model/${MODEL_NAME_NEW}"
+export MODEL_CHECKPOINT_ROOT_DIR="/bucket/checkpoints/"
+export MODEL_CHECKPOINT_FOLDER="$MODEL_NAME_NEW"
 #export TEMP=/scratch # this will use local SSDs configured for A2 VMs in the A100 slurm partition
 
 # debugging flags (optional)
@@ -35,9 +38,9 @@ echo "starting training now.. on ${SLURM_NNODES} nodes with ${SLURM_GPUS} GPUs e
 cd $SLURM_SUBMIT_DIR
 
 time srun torchrun --nnodes $SLURM_NNODES \
-	--nproc_per_node 8 \
-	--rdzv-endpoint "$head_node:$MASTER_PORT" \
+	--nproc_per_node $SLURM_GPUS \
+	--rdzv-endpoint "$MASTER_ADDR:$MASTER_PORT" \
 	--rdzv-id $SLURM_JOB_ID \
 	--rdzv-backend c10d \
 	--log_dir logs \
-	finetuning.py --model_name "$MODEL_NAME" --use_peft true --peft_method lora --quantization true --batch_size_training 1 --num_epochs 1 --dist_checkpoint_root_folder /bucket/model_checkpoints --dist_checkpoint_folder "$MODEL_NAME_NEW"
+	finetuning.py --enable_fsdp --model_name "$MODEL_NAME" --batch_size_training 1 --num_epochs 1 --dist_checkpoint_root_folder "$MODEL_CHECKPOINT_ROOT_DIR" --dist_checkpoint_folder "$MODEL_CHECKPOINT_FOLDER"

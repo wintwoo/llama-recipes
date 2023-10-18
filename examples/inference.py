@@ -19,7 +19,7 @@ def main(
     model_name,
     peft_model: str=None,
     quantization: bool=False,
-    max_new_tokens =100, #The maximum numbers of tokens to generate
+    max_new_tokens = 1024, #The maximum numbers of tokens to generate
     prompt_file: str=None,
     seed: int=42, #seed value for reproducibility
     do_sample: bool=True, #Whether or not to use sampling ; use greedy decoding otherwise.
