@@ -19,10 +19,12 @@ In this codelab, we will be using the [Cloud HPC toolkit](https://cloud.google.c
 ## Deploying the GPU Cluster
 
 ### Pre-Requisite
-You must have the following google cloud GPU quotas approved in your projects for the respective models you want to run in this codelab
-* **Llama2-7B-chat-hf** - 8 x L4-24GB GPUs
-* **Llama2-13B-chat-hf** - 40 x L4-24GB GPUs or 8 x A100-80GB GPUs
-* **Llama2-70B-chat-hf** - 16 x A100-80GB GPUs
+1. You must have an account on [Hugging Face](https://huggingface.co/) with access to the Llama 2 models and repo. To gain access to Llama 2, use [this form](https://ai.meta.com/resources/models-and-libraries/llama-downloads/) to submit a request to Meta using the same email address as your Hugging Face account. For more instructions, see [this link](https://github.com/facebookresearch/llama/tree/main#access-on-hugging-face).
+
+2. You must have the following google cloud GPU quotas approved in your projects for the respective models you want to run in this codelab
+* **Llama2-7B-chat-hf** - 8 x L4-24GB GPUs (or 2 x L4-24GB GPUs for PEFT using LoRa)
+* **Llama2-13B-chat-hf** - 40 x L4-24GB GPUs or 8 x A100-80GB GPUs (or 8 x L4-24GB GPUs for PEFT using LoRa)
+* **Llama2-70B-chat-hf** - 16 x A100-80GB GPUs (or 8 x L4-24GB GPUs for PEFT using LoRa)
 
 ### Install Cloud HPC toolkit
 
@@ -345,13 +347,13 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
     cd llama-recipes/examples
     ```
 
-5. Review and modify the `multi_node.slurm` script. 
+5. Review and modify the `single_node.slurm` script. 
 
-    5.1 You will need to add your [Huggingface User access token](https://huggingface.co/docs/hub/security-tokens) in the script `HUGGINGFACE_TOKEN="<YOUR TOKEN>"`. If you don't have a HuggingFace account, [create one now](https://huggingface.co/login). 
+    5.1 You will need to add your [Huggingface User access token](https://huggingface.co/docs/hub/security-tokens) in the script `HUGGINGFACE_TOKEN="<YOUR TOKEN>"`. Your account should already have access to Llama 2 repo (see [Pre-Requisite](#pre-requisite)) 
 
     5.2 To change the number of nodes, change the value for `SBATCH --nodes=` at the top of the script. To change between G2 VMs (L4-24GB GPU) and A2 VMs (A100-80GB GPU), change the values for `SBATCH --partition=l4/a100`.
     
-    **Each G2 and A2 VM is pre-configured with 8 x respective GPUs each.**
+    **Each G2 and A2 VM in the slurm parition is pre-configured with 8 x respective GPUs each.**
 
     * To use the **Llama-2-7b-chat-hf** model, you will need at least 8 x L4-24GB GPUs. eg. `--nodes=1` and `--partition=l4`
     * To use the **Llama-2-13b-chat-hf** model, you will need at least 40 x L4-24GB GPUs or 8 x A100-80GB GPUs
@@ -359,22 +361,30 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
 
         *Don't have enough GPUs for larger models? lower the amount of GPUs required by using these parameters in the training script ```
         ```bash
-        time srun torchrun .. finetuning.py --use_peft --peft_method lora --quantization
+        time srun torchrun .. finetuning.py --use_peft --peft_method lora
         ```
+	** Does partial tuning of the model **
+
+	```bash
+	time srun torchrun .. finetuning.py --quantization
+	```
+	** Uses 8-bit quantization instead of default bf16 **	
 
 6. Submit the training job to slurm
     ```bash
-    sbatch multi_node.slurm
+    sbatch single_node.slurm
     ```
-7. To check the status of slurm jobs
+
+7. Slurm will now create a new G2/A2 VM to run the training task. Once the job is complete, the VM will automatically be destroyed.
+
+8. To check the status of slurm jobs
     ```bash
     watch squeue
     ```
-    *Note: Full fine tuning Llama-2-7b-chat-hf with 8 x L4 GPUs using bf16 datatype takes approx. 3 hours to complete.*
+    *Note: Full fine tuning Llama-2-7b-chat-hf with 8 x L4 GPUs using bf16 datatype takes approx. 10 min to complete. The training dataset is a small subset of [samsum on HF](https://huggingface.co/datasets/samsum)*
+
+    ** Interested in finetuning the entire dataset? modify the [datasets.py script](https://github.com/saltysoup/llama-recipes/blob/main/examples/llama_recipes/configs/datasets.py) to use `train_split: str = "train"` **
     
-    *Llama-2-13b-chat-hf with 40 x L4 GPUs takes approx. 2 hours.*
-    
-    *Llama-2-70b-chat-hf with 16 x A100-80GB GPUs takes approx. 3 hours to complete.*
 
 ### Getting started with inferencing
 
@@ -383,11 +393,16 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
     ```bash
     sbatch convert_checkpoints.slurm
     ```
+   ** This takes approximately 10 min to complete **
 
 2. Once this is complete, you can load the model interactively or with an example job.
     ```bash
     sbatch test_inference.slurm
     ```
+3. You should see an output similar to below:
+   ```
+   
+   ```
 
 ## Cleaning up
 
