@@ -384,7 +384,8 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
     *Note: Full fine tuning Llama-2-7b-chat-hf with 8 x L4 GPUs using bf16 datatype takes approx. 10 min to complete. The training dataset is a small subset of [samsum on HF](https://huggingface.co/datasets/samsum)*
 
     ** Interested in finetuning the entire dataset? modify the [datasets.py script](https://github.com/saltysoup/llama-recipes/blob/main/examples/llama_recipes/configs/datasets.py) to use `train_split: str = "train"` **
-    
+
+9. Once the job is complete, Slurm will automatically create a new file (slurm-1.out) with contents from the training node's stdout/stderr output.    
 
 ### Getting started with inferencing
 
@@ -395,14 +396,44 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
     ```
    ** This takes approximately 10 min to complete **
 
+This will generate another output file eg. slurm-2.out. View the contents to see where the converted checkpoint is stored.
+
 2. Once this is complete, you can load the model interactively or with an example job.
     ```bash
     sbatch test_inference.slurm
     ```
-3. You should see an output similar to below:
-   ```
-   
-   ```
+
+This script will use a sample prompt in `chat_completion/chats.json` to generate a summary of the dialogue, using the model we fine tuned and converted previously.
+
+3. Viewing the output of the `test_inference.slurm` job, you should see an output similar to below:
+
+```
+  the inference time is 14243.336016000001 ms
+User input and model output deemed safe.
+Model output:
+{
+
+        {
+
+                "role": "system",
+
+                "content": "You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content."
+
+        },
+
+        {
+
+                "role": "user",
+
+                "content": "Summarize this conversation. John: My favourite food in the world is a cheese pizza. What about you?  Jane: I like to have a nice cold glass of water.  John: That's not really a food, tell me another one!  Jane: Fine. I like to photosynthesise in the Sun. I'm actually a plant. John: We need to get you to a doctor ASAP.  Jane: OK. I'll make an appointment at tree thirty PM. John: LOL how funny. "
+
+        }
+
+}
+!
+Summary:
+John and Jane like cheese pizza and photosynthesising in the Sun. John needs to get Jane to a doctor's appointment at tree thirty PM. 
+```
 
 ## Cleaning up
 
