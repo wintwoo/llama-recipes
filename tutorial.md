@@ -16,7 +16,7 @@ In this codelab, we will be using the [Cloud HPC toolkit](https://cloud.google.c
 * New GCE Image baked with conda and [packages for llama 2](https://github.com/saltysoup/llama-recipes/blob/main/requirements.txt) with Packer
 * Autoscaling [Slurm](https://slurm.schedmd.com/documentation.html) cluster with L4/A100 GPU partitions
 
-## Deploying the GPU Cluster
+## Deploying the ML Cluster
 
 ### Pre-Requisite
 1. You must have an account on [Hugging Face](https://huggingface.co/) with access to the Llama 2 models and repo. To gain access to Llama 2, use [this form](https://ai.meta.com/resources/models-and-libraries/llama-downloads/) to submit a request to Meta using the same email address as your Hugging Face account. For more instructions, see [this link](https://github.com/facebookresearch/llama/tree/main#access-on-hugging-face).
@@ -25,6 +25,25 @@ In this codelab, we will be using the [Cloud HPC toolkit](https://cloud.google.c
 * **Llama2-7B-chat-hf** - 8 x L4-24GB GPUs (or 2 x L4-24GB GPUs for PEFT using LoRa)
 * **Llama2-13B-chat-hf** - 40 x L4-24GB GPUs or 8 x A100-80GB GPUs (or 8 x L4-24GB GPUs for PEFT using LoRa)
 * **Llama2-70B-chat-hf** - 16 x A100-80GB GPUs (or 8 x L4-24GB GPUs for PEFT using LoRa)
+
+## Enable Google Cloud APIs
+
+Enable the services for the ML Cluster by running the following command:
+
+```bash
+gcloud services enable secretmanager.googleapis.com file.googleapis.com compute.googleapis.com storage.googleapis.com serviceusage.googleapis.com 
+```
+
+If you don't have the [gcloud CLI installed]([url](https://cloud.google.com/sdk/docs/install)), enable the API by using these links.
+* [Enable Compute Engine API](https://console.cloud.google.com/apis/api/compute.googleapis.com/overview?_ga=2.216372950.1572947691.1697699140-145949251.1697699140)
+
+* [Enable Secret Manager API](https://console.cloud.google.com/apis/api/secretmanager.googleapis.com/overview?_ga=2.185357929.1572947691.1697699140-145949251.1697699140)
+
+* [Enable Filestore API](https://console.cloud.google.com/apis/api/file.googleapis.com/overview?_ga=2.173898211.1572947691.1697699140-145949251.1697699140) 
+
+* [Enable Cloud Storage API](https://console.cloud.google.com/apis/api/storage.googleapis.com/overview?_ga=2.245348933.1572947691.1697699140-145949251.1697699140)
+
+* [Enable Service Usage API](https://console.cloud.google.com/apis/api/serviceusage.googleapis.com/overview?_ga=2.245348933.1572947691.1697699140-145949251.1697699140)
 
 ### Install Cloud HPC toolkit
 
