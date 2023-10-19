@@ -68,243 +68,326 @@ make
 * `ZONE`
 * `BUCKET_NAME`
 
-    ```yaml
-    ---
-    blueprint_name: ml-cluster
+```yaml
+blueprint_name: ml-cluster
+vars:
+  project_id: PROJECT_NAME
+  deployment_name: llama2_hpc
+  region: REGION
+  zone: ZONE
+  network_name: llama-network
+  subnetwork_name: llama2-subnet
+  new_image_family: llama2-slurm
+  disk_size_gb: 200
+  bucket_model: BUCKET_NAME
 
-    vars:
-    project_id: PROJECT_NAME ## Set your project id
-    deployment_name: llama2_hpc
-    region: REGION ## Set your region
-    zone: ZONE ## Set your zone
-    network_name: llama-network
-    subnetwork_name: llama2-subnet
-    new_image_family: llama2-slurm
-    disk_size_gb: 200
-    bucket_model: BUCKET_NAME ## Set your bucket name
-
-    deployment_groups:
-    - group: setup
+deployment_groups:
+  - group: setup
     modules:
-    - id: network1
+      - id: network1
         source: modules/network/vpc
-    - id: homefs
+      - id: homefs
         source: modules/file-system/filestore
         use:
-        - network1
+          - network1
         settings:
-        local_mount: /home
-    - id: bucket_create
+          local_mount: /home
+      - id: bucket_create
         source: community/modules/file-system/cloud-storage-bucket
         settings:
-        name_prefix: $(vars.bucket_model)
-    - id: bucket_mount
+          name_prefix: $(vars.bucket_model)
+      - id: bucket_mount
         source: modules/file-system/pre-existing-network-storage
         settings:
-        remote_mount: $(vars.bucket_model)
-        local_mount: /bucket
-        fs_type: gcsfuse
-        mount_options: defaults,_netdev,implicit_dirs,allow_other,dir_mode=0777,file_mode=766
-    - id: script
-        # configure conda environment for llama
+          remote_mount: $(vars.bucket_model)
+          local_mount: /bucket
+          fs_type: gcsfuse
+          mount_options: >-
+            defaults,_netdev,implicit_dirs,allow_other,dir_mode=0777,file_mode=766
+      - id: script
         source: modules/scripts/startup-script
         settings:
-        runners:
-        - type: shell
-            destination: install-ml-libraries.sh
-            content: |
-            #!/bin/bash
-            # this script is designed to execute on Slurm images published by SchedMD that:
-            # - are based on Debian 11 distribution of Linux
-            # - have NVIDIA Drivers v530 pre-installed
-            # - have CUDA Toolkit 12.1 pre-installed.
+          runners:
+            - type: shell
+              destination: install-ml-libraries.sh
+              content: >
+                #!/bin/bash
 
-            set -e -o pipefail
+                # this script is designed to execute on Slurm images published
+                by SchedMD that:
 
-            echo "deb https://packages.cloud.google.com/apt google-fast-socket main" > /etc/apt/sources.list.d/google-fast-socket.list
-            apt-get update
-            apt-get install --assume-yes google-fast-socket
+                # - are based on Debian 11 distribution of Linux
 
-            CONDA_BASE=/opt/conda
+                # - have NVIDIA Drivers v530 pre-installed
 
-            if [ -d $CONDA_BASE ]; then
-                    exit 0
-            fi
+                # - have CUDA Toolkit 12.1 pre-installed.
 
-            DL_DIR=$(mktemp -d)
-            cd $DL_DIR
-            curl -O https://repo.anaconda.com/miniconda/Miniconda3-py310_23.5.2-0-Linux-x86_64.sh
-            HOME=$DL_DIR bash Miniconda3-py310_23.5.2-0-Linux-x86_64.sh -b -p $CONDA_BASE
 
-            cd -
-            rm -rf $DL_DIR
-            unset DL_DIR
+                set -e -o pipefail
 
-            source $CONDA_BASE/bin/activate base
-            conda init --system
-            # following channel ordering is important! use strict_priority!
-            conda config --system --set channel_priority strict
-            conda config --system --remove channels defaults
-            conda config --system --add channels conda-forge
-            conda config --system --add channels nvidia
-            conda config --system --add channels nvidia/label/cuda-12.1.0
 
-            pip install nvidia-cudnn-cu12 nvidia-nccl-cu12
-            conda update -n base conda --yes
+                echo "deb https://packages.cloud.google.com/apt
+                google-fast-socket main" >
+                /etc/apt/sources.list.d/google-fast-socket.list
 
-            cd $CONDA_PREFIX/lib/python3.10/site-packages/nvidia/nccl/lib/
-            ln -s libnccl.so.2 libnccl.so
-            cd -
+                apt-get update
 
-            mkdir -p $CONDA_PREFIX/etc/conda/activate.d
-            echo 'export OLD_LD_LIBRARY_PATH=$LD_LIBRARY_PATH' > $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
-            echo 'NVIDIA_PYTHON_PATH=$CONDA_PREFIX/lib/python3.10/site-packages/nvidia' >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
-            echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/:$NVIDIA_PYTHON_PATH/cudnn/lib/:$NVIDIA_PYTHON_PATH/nccl/lib/:$CONDA_PREFIX/envs/llama/lib/' >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
+                apt-get install --assume-yes google-fast-socket
 
-            mkdir -p $CONDA_PREFIX/etc/conda/deactivate.d
-            echo 'export LD_LIBRARY_PATH=${OLD_LD_LIBRARY_PATH}' > $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
-            echo 'unset OLD_LD_LIBRARY_PATH' >> $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
 
-            ### create a virtual environment for llama
-            conda create -n llama python=3.10 --yes
-            conda activate llama
-            conda config --env --add channels llama
-            conda install -n llama appdirs=1.4.4 loralib=0.1.1 cuda=12.1.0 black=23.7.0 black-jupyter=23.7.0 py7zr=0.20.6 scipy=1.11.1 optimum=1.1.1 datasets=2.14.4 accelerate=0.21.0 peft=0.3.0 bitsandbytes=0.41.0 fairscale=0.4.13 fire=0.5.0 sentencepiece=0.1.99 transformers=4.31.0 --yes
-            pip install trl==0.4.7
-            pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
+                CONDA_BASE=/opt/conda
 
-            # Compile bitsandbytes from source for cuda 12.1 support
-            git clone https://github.com/TimDettmers/bitsandbytes.git
-            cd bitsandbytes
-            export CUDA_HOME=/usr/local/cuda-12.1 && make cuda12x CUDA_VERSION=121
-            export CUDA_HOME=/usr/local/cuda-12.1 && make cuda12x_nomatmul CUDA_VERSION=121
-            CUDA_VERSION=121 && /opt/conda/bin/python3.10 setup.py install
-            cp bitsandbytes/libbitsandbytes_cuda121* /opt/conda/envs/llama/lib/python3.10/site-packages/bitsandbytes/
-            ln -sf /opt/conda/envs/llama/lib/libstdc++.so.6.0.31 /lib/x86_64-linux-gnu/libstdc++.so.6.0.28
 
-    - group: packer
+                if [ -d $CONDA_BASE ]; then
+                        exit 0
+                fi
+
+
+                DL_DIR=$(mktemp -d)
+
+                cd $DL_DIR
+
+                curl -O
+                https://repo.anaconda.com/miniconda/Miniconda3-py310_23.5.2-0-Linux-x86_64.sh
+
+                HOME=$DL_DIR bash Miniconda3-py310_23.5.2-0-Linux-x86_64.sh -b
+                -p $CONDA_BASE
+
+
+                cd -
+
+                rm -rf $DL_DIR
+
+                unset DL_DIR
+
+
+                source $CONDA_BASE/bin/activate base
+
+                conda init --system
+
+                # following channel ordering is important! use strict_priority!
+
+                conda config --system --set channel_priority strict
+
+                conda config --system --remove channels defaults
+
+                conda config --system --add channels conda-forge
+
+                conda config --system --add channels nvidia
+
+                conda config --system --add channels nvidia/label/cuda-12.1.0
+
+
+                pip install nvidia-cudnn-cu12 nvidia-nccl-cu12
+
+                conda update -n base conda --yes
+
+
+                cd $CONDA_PREFIX/lib/python3.10/site-packages/nvidia/nccl/lib/
+
+                ln -s libnccl.so.2 libnccl.so
+
+                cd -
+
+
+                mkdir -p $CONDA_PREFIX/etc/conda/activate.d
+
+                echo 'export OLD_LD_LIBRARY_PATH=$LD_LIBRARY_PATH' >
+                $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
+
+                echo
+                'NVIDIA_PYTHON_PATH=$CONDA_PREFIX/lib/python3.10/site-packages/nvidia'
+                >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
+
+                echo 'export
+                LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/:$NVIDIA_PYTHON_PATH/cudnn/lib/:$NVIDIA_PYTHON_PATH/nccl/lib/:$CONDA_PREFIX/envs/llama/lib/'
+                >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
+
+
+                mkdir -p $CONDA_PREFIX/etc/conda/deactivate.d
+
+                echo 'export LD_LIBRARY_PATH=${OLD_LD_LIBRARY_PATH}' >
+                $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
+
+                echo 'unset OLD_LD_LIBRARY_PATH' >>
+                $CONDA_PREFIX/etc/conda/deactivate.d/env_vars.sh
+
+
+                ### create a virtual environment for llama
+
+                conda create -n llama python=3.10 --yes
+
+                conda activate llama
+
+                conda config --env --add channels llama
+
+                conda install -n llama appdirs=1.4.4 loralib=0.1.1 cuda=12.1.0
+                black=23.7.0 black-jupyter=23.7.0 py7zr=0.20.6 scipy=1.11.1
+                optimum=1.1.1 datasets=2.14.4 accelerate=0.21.0 peft=0.3.0
+                bitsandbytes=0.41.0 fairscale=0.4.13 fire=0.5.0
+                sentencepiece=0.1.99 transformers=4.31.0 --yes
+
+                pip install trl==0.4.7
+
+                pip install --pre torch torchvision torchaudio --index-url
+                https://download.pytorch.org/whl/nightly/cu121
+
+
+                # Compile bitsandbytes from source for cuda 12.1 support
+
+                git clone https://github.com/TimDettmers/bitsandbytes.git
+
+                cd bitsandbytes
+
+                export CUDA_HOME=/usr/local/cuda-12.1 && make cuda12x
+                CUDA_VERSION=121
+
+                export CUDA_HOME=/usr/local/cuda-12.1 && make cuda12x_nomatmul
+                CUDA_VERSION=121
+
+                CUDA_VERSION=121 && /opt/conda/bin/python3.10 setup.py install
+
+                cp bitsandbytes/libbitsandbytes_cuda121*
+                /opt/conda/envs/llama/lib/python3.10/site-packages/bitsandbytes/
+
+                ln -sf /opt/conda/envs/llama/lib/libstdc++.so.6.0.31
+                /lib/x86_64-linux-gnu/libstdc++.so.6.0.28
+  - group: packer
     modules:
-    - id: custom-image
+      - id: custom-image
         source: modules/packer/custom-image
         kind: packer
         use:
-        - network1
-        - script
+          - network1
+          - script
         settings:
-        source_image_project_id: [schedmd-slurm-public]
-        source_image_family: slurm-gcp-5-7-debian-11
-        disk_size: $(vars.disk_size_gb)
-        image_family: $(vars.new_image_family)
-        machine_type: c2-standard-8 # building this image does not require a GPU-enabled VM
-        state_timeout: 30m
-
-    - group: cluster
+          source_image_project_id:
+            - schedmd-slurm-public
+          source_image_family: slurm-gcp-5-7-debian-11
+          disk_size: $(vars.disk_size_gb)
+          image_family: $(vars.new_image_family)
+          machine_type: c2-standard-8
+          state_timeout: 30m
+  - group: cluster
     modules:
-    - id: ssd-startup
+      - id: ssd-startup
         source: modules/scripts/startup-script
         settings:
-        runners:
-        - type: shell
-            destination: "/tmp/mount_ssd.sh"
-            content: |
-            #!/bin/bash
-            set -ex
-            export LOG_FILE=/tmp/ssd-setup.log
-            export DST_MNT="/scratch"
-            if [ -d $DST_MNT ]; then
-                echo "DST_MNT already exists. Canceling." >> $LOG_FILE
-                exit 0
-            fi
-            apt -y install mdadm
-            lsblk >> $LOG_FILE
-            export DEVICES=`lsblk -d -n -oNAME,RO | grep 'nvme.*0$' | awk {'print "/dev/" $1'}`
-            mdadm --create /dev/md0 --level=0 --raid-devices=8 $DEVICES
-            mkfs.ext4 -F /dev/md0
-            mkdir -p $DST_MNT
-            mount /dev/md0 $DST_MNT
-            chmod a+w $DST_MNT
-            echo UUID=`blkid -s UUID -o value /dev/md0` $DST_MNT ext4 discard,defaults,nofail 0 2 | tee -a /etc/fstab
-            cat /etc/fstab >> $LOG_FILE
-            echo "DONE" >> $LOG_FILE
+          runners:
+            - type: shell
+              destination: /tmp/mount_ssd.sh
+              content: >
+                #!/bin/bash
 
-    - id: a2_node_group
+                set -ex
+
+                export LOG_FILE=/tmp/ssd-setup.log
+
+                export DST_MNT="/scratch"
+
+                if [ -d $DST_MNT ]; then
+                    echo "DST_MNT already exists. Canceling." >> $LOG_FILE
+                    exit 0
+                fi
+
+                apt -y install mdadm
+
+                lsblk >> $LOG_FILE
+
+                export DEVICES=`lsblk -d -n -oNAME,RO | grep 'nvme.*0$' | awk
+                {'print "/dev/" $1'}`
+
+                mdadm --create /dev/md0 --level=0 --raid-devices=8 $DEVICES
+
+                mkfs.ext4 -F /dev/md0
+
+                mkdir -p $DST_MNT
+
+                mount /dev/md0 $DST_MNT
+
+                chmod a+w $DST_MNT
+
+                echo UUID=`blkid -s UUID -o value /dev/md0` $DST_MNT ext4
+                discard,defaults,nofail 0 2 | tee -a /etc/fstab
+
+                cat /etc/fstab >> $LOG_FILE
+
+                echo "DONE" >> $LOG_FILE
+      - id: a2_node_group
         source: community/modules/compute/schedmd-slurm-gcp-v5-node-group
         settings:
-        node_count_dynamic_max: 2
-        bandwidth_tier: gvnic_enabled
-        disable_public_ips: false
-        enable_smt: true
-        machine_type: a2-ultragpu-8g
-        disk_type: pd-ssd
-        disk_size_gb: $(vars.disk_size_gb)
-        on_host_maintenance: TERMINATE
+          node_count_dynamic_max: 2
+          bandwidth_tier: gvnic_enabled
+          disable_public_ips: false
+          enable_smt: true
+          machine_type: a2-ultragpu-8g
+          disk_type: pd-ssd
+          disk_size_gb: $(vars.disk_size_gb)
+          on_host_maintenance: TERMINATE
         instance_image:
-            family: $(vars.new_image_family)
-            project: $(vars.project_id)
-
-    - id: a2_partition
+          family: $(vars.new_image_family)
+          project: $(vars.project_id)
+      - id: a2_partition
         source: community/modules/compute/schedmd-slurm-gcp-v5-partition
         use:
-        - ssd-startup
-        - a2_node_group
-        - homefs
-        - bucket_mount
-        - network1
+          - ssd-startup
+          - a2_node_group
+          - homefs
+          - bucket_mount
+          - network1
         settings:
-        zone: $(vars.zone)
-        partition_name: a100
-        enable_placement: true
-
-    - id: g2_node_group
+          zone: $(vars.zone)
+          partition_name: a100
+          enable_placement: true
+      - id: g2_node_group
         source: community/modules/compute/schedmd-slurm-gcp-v5-node-group
         settings:
-        node_count_dynamic_max: 5
-        bandwidth_tier: gvnic_enabled
-        disable_public_ips: false
-        enable_smt: true
-        machine_type: g2-standard-96
-        disk_type: pd-ssd
-        disk_size_gb: $(vars.disk_size_gb)
-        on_host_maintenance: TERMINATE
-        instance_image:
+          node_count_dynamic_max: 5
+          bandwidth_tier: gvnic_enabled
+          disable_public_ips: false
+          enable_smt: true
+          machine_type: g2-standard-96
+          disk_type: pd-ssd
+          disk_size_gb: $(vars.disk_size_gb)
+          on_host_maintenance: TERMINATE
+          instance_image:
             family: $(vars.new_image_family)
             project: $(vars.project_id)
-
-    - id: g2_partition
+      - id: g2_partition
         source: community/modules/compute/schedmd-slurm-gcp-v5-partition
         use:
-        - g2_node_group
-        - homefs
-        - bucket_mount
-        - network1
+          - g2_node_group
+          - homefs
+          - bucket_mount
+          - network1
         settings:
-        partition_name: l4
-        enable_placement: false # enable compact placement policy
-        partition_startup_scripts_timeout: 1200
-
-    - id: slurm_controller
+          partition_name: l4
+          enable_placement: false
+          partition_startup_scripts_timeout: 1200
+      - id: slurm_controller
         source: community/modules/scheduler/schedmd-slurm-gcp-v5-controller
         use:
-        - network1
-        - a2_partition
-        - homefs
-        - bucket_mount
+          - network1
+          - a2_partition
+          - homefs
+          - bucket_mount
         settings:
-        disable_controller_public_ips: false
-        instance_image:
+          disable_controller_public_ips: false
+          instance_image:
             family: $(vars.new_image_family)
             project: $(vars.project_id)
-
-    - id: slurm_login
+      - id: slurm_login
         source: community/modules/scheduler/schedmd-slurm-gcp-v5-login
         use:
-        - network1
-        - slurm_controller
-        settings:
+          - network1
+          - slurm_controller
+        settings: null
         instance_image:
-            family: $(vars.new_image_family)
-            project: $(vars.project_id)
-    ```
+          family: $(vars.new_image_family)
+          project: $(vars.project_id)
+
+
+```
 
 2. Create a new yaml file called `llama2_hpc.yaml` and copy the updated contents into the file. *Reminder: Don't forget to include your project id, region, zone, bucket name*
 
