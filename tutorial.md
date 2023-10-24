@@ -123,6 +123,7 @@ deployment_groups:
     source: community/modules/file-system/cloud-storage-bucket
     settings:
       name_prefix: $(vars.bucket_model)
+      use_deployment_name_in_bucket_name: false
 
   - id: bucket_mount
     source: modules/file-system/pre-existing-network-storage
