@@ -84,7 +84,7 @@ make
 
 ### Configure the deployment blueprint for Cloud HPC toolkit to deploy a GPU training cluster
 
-1. Create a new yaml file called `llama2_hpc.yaml` and update the placeholder values in the deployment yaml below (under `vars:`). Copy the content to your clipboard.
+1. Create a new yaml file called `llama2-hpc.yaml` and update the placeholder values in the deployment yaml below (under `vars:`). Copy the content to your clipboard.
 
 * `PROJECT_ID`
 * `REGION`
@@ -97,7 +97,7 @@ blueprint_name: ml-cluster
 
 vars:
   project_id: PROJECT_NAME ## Set your project id
-  deployment_name: llama2_hpc
+  deployment_name: llama2-hpc
   region: REGION ## Set your region
   zone: ZONE ## Set your zone
   network_name: llama-network
@@ -333,16 +333,16 @@ deployment_groups:
         project: $(vars.project_id)
 ```
 
-2. Save the updated contents into the `llama2_hpc.yaml` file. *Reminder: Don't forget to include your project id, region, zone, bucket name*
+2. Save the updated contents into the `llama2-hpc.yaml` file. *Reminder: Don't forget to include your project id, region, zone, bucket name*
 
 3. Use the `ghpc` tool to generate the deployment files
     ```bash
-    ./ghpc create llama2_hpc.yaml
+    ./ghpc create llama2-hpc.yaml
     ```
 
 4. Use the `ghpc` tool to deploy the cloud resources
     ```bash
-    ./ghpc deploy llama2_hpc
+    ./ghpc deploy llama2-hpc
     ```
  
     *When prompted during deployment, enter "a" to apply and continue deploying.*
