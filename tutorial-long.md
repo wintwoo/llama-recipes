@@ -363,7 +363,7 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
 
 1. Access the Google cloud console on your browser and navigate to the [Compute Engine portal](https://console.cloud.google.com/compute/instances). You should see 1 x Slurm controller VM and 1 x Slurm login node VM.
 
-2. SSH into the Slurm login node by clicking on the SSH button next to the VM on the console.
+2. SSH into the Slurm login node by clicking on the SSH button next to the VM on the console. The VM will be called `llama2hpc-login-*`.
 
 3. Within the shell session of the login node,  activate the working environment with
     ```bash
