@@ -86,8 +86,6 @@ make
 1. Create a new yaml file called `llama2-hpc.yaml` and update the placeholder values in the deployment yaml below (under `vars:`). Copy the content to your clipboard.
 
 * `PROJECT_ID`
-* `REGION`
-* `ZONE`
 * `BUCKET_NAME`
 
 ```yaml
