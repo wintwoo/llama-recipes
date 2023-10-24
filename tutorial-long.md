@@ -219,7 +219,7 @@ deployment_groups:
     - script
     settings:
       source_image_project_id: [schedmd-slurm-public]
-      source_image_family: slurm-gcp-5-7-debian-11
+      source_image_family: slurm-gcp-5-9-debian-11
       disk_size: $(vars.disk_size_gb)
       image_family: $(vars.new_image_family)
       machine_type: c2-standard-8 # building this image does not require a GPU-enabled VM
