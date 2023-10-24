@@ -47,8 +47,12 @@ If you don't have the [gcloud CLI installed]([url](https://cloud.google.com/sdk/
 
 ### Install Cloud HPC toolkit
 
-Install the dependencies for the Cloud HPC toolkit
+Install the dependencies for the Cloud HPC toolkit.
+
+Alternatively, you can use a pre-configured [cloudshell environment](https://cloud.google.com/shell/docs/launching-cloud-shell) in your GCP console.  
 ```bash
+sudo apt-get install gcc-multilib
+
 # Install Terraform
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
