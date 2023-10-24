@@ -30,7 +30,7 @@ export LOGLEVEL=INFO
 #export TORCH_DISTRIBUTED_DEBUG=DETAIL
 
 echo "setting HF token to download base model"
-HUGGINGFACE_TOKEN="<YOUR TOKEN>"
+HUGGINGFACE_TOKEN="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""
 huggingface-cli login --token $HUGGINGFACE_TOKEN
 
 echo "starting training now.. on ${SLURM_NNODES} nodes with ${SLURM_GPUS} GPUs each"
