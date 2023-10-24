@@ -201,6 +201,10 @@ deployment_groups:
           pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu121
 
           # Compile bitsandbytes from source for cuda 12.1 support
+          # install nvidia nvcc
+          wget https://raw.githubusercontent.com/TimDettmers/bitsandbytes/main/cuda_install.sh
+          bash cuda_install.sh 121 /usr/local/ 1
+
           git clone https://github.com/TimDettmers/bitsandbytes.git
           cd bitsandbytes
           export CUDA_HOME=/usr/local/cuda-12.1 && make cuda12x CUDA_VERSION=121
