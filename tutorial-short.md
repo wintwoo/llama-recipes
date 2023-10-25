@@ -222,6 +222,7 @@ deployment_groups:
     use:
     - network1
     - a2_partition
+    - g2_partition
     - homefs
     - bucket_mount
     settings:
