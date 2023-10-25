@@ -324,7 +324,7 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
 
   mkdir -p $CONSOLIDATED_MODEL_PATH
 
-  gsutil cp -r gs://injae-download/Llama-2-7b-chat-hf/checkpoints/* $CONSOLIDATED_MODEL_PATH
+  gsutil -m cp -r gs://injae-download/Llama-2-7b-chat-hf/checkpoints/* $CONSOLIDATED_MODEL_PATH
   ```
 
 2. Once this is complete, you can load the model interactively or with an example job.
