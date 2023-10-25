@@ -100,7 +100,7 @@ vars:
   network_name: llama-network
   subnetwork_name: llama2-subnet
   new_image_project: injae-sandbox-340804
-  new_image_name: llama2-slurm-20231024t051732z
+  new_image_name: llama-slurm-20230824t114217z
   disk_size_gb: 200
   bucket_model: BUCKET_NAME ## Set your bucket name
 
@@ -172,8 +172,9 @@ deployment_groups:
       disk_size_gb: $(vars.disk_size_gb)
       on_host_maintenance: TERMINATE
       instance_image:
-        family: $(vars.new_image_name)
+        name: $(vars.new_image_name)
         project: $(vars.new_image_project)
+      instance_image_custom: true
 
   - id: a2_partition
     source: community/modules/compute/schedmd-slurm-gcp-v5-partition
@@ -200,8 +201,9 @@ deployment_groups:
       disk_size_gb: $(vars.disk_size_gb)
       on_host_maintenance: TERMINATE
       instance_image:
-        family: $(vars.new_image_name)
+        name: $(vars.new_image_name)
         project: $(vars.new_image_project)
+      instance_image_custom: true
 
   - id: g2_partition
     source: community/modules/compute/schedmd-slurm-gcp-v5-partition
@@ -225,8 +227,9 @@ deployment_groups:
     settings:
       disable_controller_public_ips: false
       instance_image:
-        family: $(vars.new_image_name)
+        name: $(vars.new_image_name)
         project: $(vars.new_image_project)
+      instance_image_custom: true
 
   - id: slurm_login
     source: community/modules/scheduler/schedmd-slurm-gcp-v5-login
@@ -235,8 +238,9 @@ deployment_groups:
     - slurm_controller
     settings:
       instance_image:
-        family: $(vars.new_image_name)
+        name: $(vars.new_image_name)
         project: $(vars.new_image_project)
+      instance_image_custom: true
 ```
 
 2. Save the updated contents into the `llama2_hpc.yaml` file. *Reminder: Don't forget to include your project id, region, zone, bucket name*
