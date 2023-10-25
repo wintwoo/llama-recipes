@@ -258,7 +258,7 @@ deployment_groups:
  
     *When prompted during deployment, enter "a" to apply and continue deploying.*
 
-    Note: Deployment across all groups should take approx. 10 min to complete.
+    Note: Deployment across all groups should take approx. 15 min to complete.
 
 ## Running training and inference jobs
 
