@@ -314,9 +314,18 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
     ```bash
     sbatch convert_checkpoints.slurm
     ```
-   *This takes approximately 10 min to complete*
+   *This takes approximately 15 min to complete*
 
-This will generate another output file eg. slurm-2.out. View the contents to see where the converted checkpoint is stored.
+   This will generate another output file eg. slurm-2.out. View the contents to see where the converted checkpoint is stored.
+
+**Alternatively, you can download a copy of converted checkpoints using the following command**
+  ```bash
+  CONSOLIDATED_MODEL_PATH="/bucket/checkpoints/meta-llama/Llama-2-7b-chat-hf_new-meta-llama/Llama-2-7b-chat-hf/save/checkpoints/"
+
+  mkdir -p $CONSOLIDATED_MODEL_PATH
+
+  gsutil cp -r gs://injae-download/Llama-2-7b-chat-hf/checkpoints/* $CONSOLIDATED_MODEL_PATH
+  ```
 
 2. Once this is complete, you can load the model interactively or with an example job.
     ```bash
