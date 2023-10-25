@@ -354,6 +354,7 @@ Model output:
 Summary:
 John and Jane like cheese pizza and photosynthesising in the Sun. John needs to get Jane to a doctor's appointment at tree thirty PM. 
 ```
+** Want to run this interactively on the GPU node? You can use Slurm to create a new G2 VM using the command: `salloc -p l4 -n 1 --time=24:00:00` **
 
 4. Congratulations! you've now fine tuned the Llama2 foundational model using custom training dataset. To increase the accuracy of the model, try this lab again with the full samsum dataset or on a larger llama2 model.
 
