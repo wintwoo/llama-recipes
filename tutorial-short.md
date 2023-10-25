@@ -320,17 +320,20 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
 
 **Alternatively, you can download a copy of converted checkpoints using the following command**
   ```bash
-  CONSOLIDATED_MODEL_PATH="/bucket/checkpoints/meta-llama/Llama-2-7b-chat-hf_new-meta-llama/Llama-2-7b-chat-hf/save/checkpoints/"
+  LOCAL_CONSOLIDATED_MODEL_PATH="./Llama-2-7b-chat-hf_new-meta-llama/Llama-2-7b-chat-hf/save/checkpoints/"
 
-  mkdir -p $CONSOLIDATED_MODEL_PATH
+  mkdir -p $LOCAL_CONSOLIDATED_MODEL_PATH
 
-  gsutil -m cp -r gs://injae-download/Llama-2-7b-chat-hf/checkpoints/* $CONSOLIDATED_MODEL_PATH
+  gsutil -m cp -r gs://injae-download/Llama-2-7b-chat-hf/checkpoints/* $LOCAL_CONSOLIDATED_MODEL_PATH
   ```
+  *This takes approximately 5 min to complete*
 
 2. Once this is complete, you can load the model interactively or with an example job.
     ```bash
     sbatch test_inference.slurm
     ```
+
+    **If you've downloaded a local copy of the checkpoints using above `gsutil` command, edit the `test_inference.slurm` script and the update value for `CONSOLIDATED_MODEL_PATH="./Llama-2-7b-chat-hf_new-meta-llama/Llama-2-7b-chat-hf/save/checkpoints/"` before submitting the inference job to Slurm**
 
 This script will use a sample prompt in `chat_completion/chats.json` to generate a summary of the dialogue, using the model we fine tuned and converted previously.
 
