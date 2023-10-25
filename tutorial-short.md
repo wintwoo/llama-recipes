@@ -286,16 +286,16 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
 
     ```
 
-5. Open the `single_node.slurm` script and review how we can pass dynamic values for multi-nodes and multi-gpus from Slurm to torchrun. 
+5. Open the `single_node.slurm` script and review how we can pass dynamic values for multi-nodes and multi-gpus from Slurm to torchrun. The llama 2 base model will be downloaded from Hugging Face, with the final checkpoints being stored in a GCS bucket via GCS Fuse at `/bucket` (this was created via the HPC toolkit previously).
 
-6. Submit the training job to slurm
+6. Submit the training job to slurm. If successful, you will see the following output `Submitted batch job 1`
     ```bash
     sbatch single_node.slurm
     ```
 
 7. Slurm will now create a new G2/A2 VM to run the training task. Once the job is complete, the VM will automatically be destroyed.
 
-8. To check the status of slurm jobs
+8. To check the status of slurm jobs. `CF` indicates that the node is being created and `R` indicates that the job is now running.
     ```bash
     watch squeue
     ```
@@ -303,7 +303,9 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
 
     ** Interested in finetuning the entire dataset? modify the [datasets.py script](https://github.com/saltysoup/llama-recipes/blob/main/examples/llama_recipes/configs/datasets.py) to use `train_split: str = "train"` **
 
-9. Once the job is complete, Slurm will automatically create a new file (slurm-1.out) with contents from the training node's stdout/stderr output.    
+9. Once the job is complete, Slurm will automatically create a new file (slurm-1.out) with contents from the training node's stdout/stderr output. You can `tail -f` this file to see the training progress.
+
+10. The fine tuned checkpoints can now be found in `/bucket/checkpoints/meta-llama/`  
 
 ### Getting started with inferencing
 
@@ -352,6 +354,10 @@ Model output:
 Summary:
 John and Jane like cheese pizza and photosynthesising in the Sun. John needs to get Jane to a doctor's appointment at tree thirty PM. 
 ```
+
+4. Congratulations! you've now fine tuned the Llama2 foundational model using custom training dataset. To increase the accuracy of the model, try this lab again with the full samsum dataset or on a larger llama2 model.
+
+Additionally, you can create domain expert LLM chatbots using your own data using this fine tuning method. 
 
 ## Cleaning up
 
