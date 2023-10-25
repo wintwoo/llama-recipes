@@ -102,7 +102,7 @@ vars:
   new_image_project: injae-sandbox-340804
   new_image_name: llama-slurm-20230824t114217z
   disk_size_gb: 200
-  bucket_model: BUCKET_NAME ## Set your bucket name
+  bucket_model: BUCKET_NAME ## Set your new bucket name
 
 deployment_groups:
 - group: setup
@@ -247,12 +247,12 @@ deployment_groups:
 
 3. Use the `ghpc` tool to generate the deployment files
     ```bash
-    ./ghpc create llama2_hpc.yaml
+    ./ghpc create llama2-hpc.yaml
     ```
 
 4. Use the `ghpc` tool to deploy the cloud resources
     ```bash
-    ./ghpc deploy llama2_hpc
+    ./ghpc deploy llama2-hpc
     ```
  
     *When prompted during deployment, enter "a" to apply and continue deploying.*
