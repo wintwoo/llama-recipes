@@ -325,7 +325,7 @@ This will generate another output file eg. slurm-2.out. View the contents to see
 
 This script will use a sample prompt in `chat_completion/chats.json` to generate a summary of the dialogue, using the model we fine tuned and converted previously.
 
-3. Viewing the output of the `test_inference.slurm` job, you should see an output similar to below:
+3. Viewing the output of the `test_inference.slurm` job (slurm-3.out), you should see an output similar to below:
 
 ```
   the inference time is 14243.336016000001 ms
