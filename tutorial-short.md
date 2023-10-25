@@ -301,7 +301,7 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
     ```
     *Note: Full fine tuning Llama-2-7b-chat-hf with 8 x L4 GPUs using bf16 datatype takes approx. 10 min to complete. The training dataset is a small subset of [samsum on HF](https://huggingface.co/datasets/samsum)*
 
-    ** Interested in finetuning the entire dataset? modify the [datasets.py script](https://github.com/saltysoup/llama-recipes/blob/main/examples/llama_recipes/configs/datasets.py) to use `train_split: str = "train"` **
+    *Interested in finetuning the entire dataset? modify the [datasets.py script](https://github.com/saltysoup/llama-recipes/blob/main/examples/llama_recipes/configs/datasets.py) to use `train_split: str = "train"`*
 
 9. Once the job is complete, Slurm will automatically create a new file (slurm-1.out) with contents from the training node's stdout/stderr output. You can `tail -f` this file to see the training progress.
 
@@ -314,7 +314,7 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
     ```bash
     sbatch convert_checkpoints.slurm
     ```
-   ** This takes approximately 10 min to complete **
+   *This takes approximately 10 min to complete*
 
 This will generate another output file eg. slurm-2.out. View the contents to see where the converted checkpoint is stored.
 
@@ -354,7 +354,7 @@ Model output:
 Summary:
 John and Jane like cheese pizza and photosynthesising in the Sun. John needs to get Jane to a doctor's appointment at tree thirty PM. 
 ```
-** Want to run this interactively on the GPU node? You can use Slurm to create a new G2 VM using the command: `salloc -p l4 -n 1 --time=24:00:00` **
+*Want to run this interactively on the GPU node? You can use Slurm to create a new G2 VM using the command: `salloc -p l4 -n 1 --time=24:00:00`*
 
 4. Congratulations! you've now fine tuned the Llama2 foundational model using custom training dataset. To increase the accuracy of the model, try this lab again with the full samsum dataset or on a larger llama2 model.
 
