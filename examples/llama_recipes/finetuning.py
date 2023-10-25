@@ -3,6 +3,7 @@
 
 import os
 from pkg_resources import packaging
+import time
 
 import fire
 import torch
@@ -236,6 +237,7 @@ def main(**kwargs):
     scheduler = StepLR(optimizer, step_size=1, gamma=train_config.gamma)
 
     # Start the training process
+    start = time.perf_counter()
     results = train(
         model,
         train_dataloader,
@@ -249,6 +251,8 @@ def main(**kwargs):
         local_rank if train_config.enable_fsdp else None,
         rank if train_config.enable_fsdp else None,
     )
+    e2e_training_time = (time.perf_counter()-start)*1000
+    print(f"the training time is {e2e_training_time} ms")
     if not train_config.enable_fsdp or rank==0:
         [print(f'Key: {k}, Value: {v}') for k, v in results.items()]
 
