@@ -101,7 +101,7 @@ vars:
   subnetwork_name: llama2-subnet
   new_image_project: injae-sandbox-340804
   new_image_name: llama-slurm-20230824t114217z
-  disk_size_gb: 200
+  disk_size_gb: 300
   bucket_model: BUCKET_NAME ## Set your new bucket name
 
 deployment_groups:
