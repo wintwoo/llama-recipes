@@ -295,7 +295,7 @@ This will ensure that GPU nodes are only run for the duration of the tasks and d
 
 7. Slurm will now create a new G2/A2 VM to run the training task. Once the job is complete, the VM will automatically be destroyed.
 
-8. To check the status of slurm jobs. `CF` indicates that the node is being created and `R` indicates that the job is now running.
+8. To check the status of slurm jobs. `CF` indicates that the node is being created,`R` indicates that the job is running and `CG` indicates that the job is completing and the node is shutting down.
     ```bash
     watch squeue
     ```
